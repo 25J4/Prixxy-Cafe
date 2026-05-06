@@ -38,12 +38,14 @@ def generate_captions(menu_name, price):
         return []
 
 if __name__ == "__main__":
-    # ลองเปลี่ยนเมนูเทสดูบ้าง
-    sample_menu = "สตรอว์เบอร์รีโซดา (Strawberry Soda)"
-    sample_price = "75 บาท"
+    print("✨ --- ระบบคิดแคปชั่นอัตโนมัติ Prixxy-Cafe --- ✨")
     
-    print(f"🚀 กำลังให้ AI คิด Caption สำหรับ {sample_menu} ร้าน Prixxy-Cafe...")
-    captions = generate_captions(sample_menu, sample_price)
+    # รับค่า Input จากผู้ใช้ผ่าน Terminal
+    menu_input = input("👉 กรุณาใส่ชื่อเมนู (เช่น มัทฉะลาเต้): ")
+    price_input = input("👉 กรุณาใส่ราคา (เช่น 85 บาท): ")
+    
+    print(f"\n🚀 กำลังให้ AI คิด Caption สำหรับ '{menu_input}' ร้าน Prixxy-Cafe...")
+    captions = generate_captions(menu_input, price_input)
     
     if not captions:
         print("⚠️ ไม่สามารถสร้าง Caption ได้ครับ")
