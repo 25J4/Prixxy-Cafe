@@ -5,12 +5,11 @@ from dotenv import load_dotenv
 from datetime import datetime
 from sheets_client import get_sheet  # ดึงฟังก์ชันมาจากไฟล์ที่เราแยกไว้
 
-# 1. โหลดการตั้งค่าจาก .env
 load_dotenv()
 TELEGRAM_TOKEN = os.getenv("TELEGRAM_TOKEN")
 TELEGRAM_CHAT_ID = os.getenv("TELEGRAM_CHAT_ID")
 
-# 2. ฟังก์ชันแจ้งเตือน Telegram (ยกมาจากโค้ดเดิมของคุณเป๊ะๆ)
+#ฟังก์ชันแจ้งเตือน Telegram (ยกมาจากโค้ดเดิมของคุณเป๊ะๆ)
 def send_telegram_alert(menu_name, quantity, total_price):
     try:
         message = (
@@ -34,9 +33,9 @@ def send_telegram_alert(menu_name, quantity, total_price):
     except Exception as e:
         print(f"❌ ส่งแจ้งเตือนพลาด: {e}")
 
-# 3. ฟังก์ชันหลักสำหรับรับค่าจาก Command Line และจดยอดขาย
+#ฟังก์ชันหลักสำหรับรับค่าจาก Command Line และจดยอดขาย
 def log_sale():
-    # ตรวจสอบรูปแบบการพิมพ์ (เช่น python sales_logger.py "ลาเต้:1:60")
+    #ตรวจสอบรูปแบบการพิมพ์ (เช่น python sales_logger.py "ลาเต้:1:60")
     if len(sys.argv) < 2:
         print("❌ รูปแบบผิด! ต้องพิมพ์: python sales_logger.py \"เมนู:จำนวน:ราคา\"")
         return
@@ -44,23 +43,23 @@ def log_sale():
     input_data = sys.argv[1] # รับค่า "เมนู:จำนวน:ราคา"
     
     try:
-        # แยกข้อมูลและคำนวณ
+        #แยกข้อมูลและคำนวณ
         menu, qty, price = input_data.split(":")
         qty = int(qty)
         price = float(price)
         total_price = qty * price
         
-        # เตรียมข้อมูลวันที่
+        #เตรียมข้อมูลวันที่
         current_time = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
         row_data = [current_time, menu, qty, price, total_price]
 
-        # 4. จดลง Google Sheets ผ่าน sheets_client
+        #จดลง Google Sheets ผ่าน sheets_client
         worksheet = get_sheet() # เรียกใช้ Client ที่เราแยกไฟล์ไว้
         worksheet.append_row(row_data) # เพิ่มแถวใหม่
         
         print(f"✅ จดยอดขายสำเร็จ: {menu} | จำนวน: {qty} | รวม: {total_price} บาท")
 
-        # 5. แจ้งเตือนเข้า Telegram
+        #แจ้งเตือนเข้า Telegram
         send_telegram_alert(menu, qty, total_price)
         
     except ValueError:
