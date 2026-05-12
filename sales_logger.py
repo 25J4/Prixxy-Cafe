@@ -6,7 +6,7 @@ from datetime import datetime # เครื่องมือสำหรับ
 # 1. โหลดการตั้งค่า
 load_dotenv()
 SHEET_ID = os.getenv("SPREADSHEET_ID")
-SERVICE_ACCOUNT_FILE = 'prixxy-cafe-afa01441ab9d.json'
+SERVICE_ACCOUNT_FILE = os.getenv("GOOGLE_SERVICE_ACCOUNT_FILE")
 
 # 2. ยืนยันตัวตนและเปิดตาราง
 gc = gspread.service_account(filename=SERVICE_ACCOUNT_FILE)
