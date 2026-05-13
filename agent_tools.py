@@ -12,7 +12,7 @@ def log_sale(menu: str, quantity: int, price: float) -> str:
     
     # --- ส่วนที่ 1: แจ้งเตือนผ่าน Telegram ---
     # ใช้ชื่อ TELEGRAM_TOKEN ให้ตรงกับใน Settings ของคุณ
-    token = os.getenv("TELEGRAM_TOKEN")
+    token = os.getenv("TELEGRAM_BOT_TOKEN")
     chat_id = os.getenv("TELEGRAM_CHAT_ID")
     
     tg_status = "รอกำเนินการ"
