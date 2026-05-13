@@ -52,9 +52,9 @@ if prompt := st.chat_input("ถามข้อมูลหรือสั่ง�
                     "parameters": {
                         "type": "OBJECT",
                         "properties": {
-                            "menu": {"type": "STRING", "description": "ชื่อเมนูเครื่องดื่ม"},
-                            "quantity": {"type": "INTEGER", "description": "จำนวนแก้ว (หากไม่ระบุคือ 1)"},
-                            "price": {"type": "NUMBER", "description": "ราคาต่อแก้ว (ถ้าไม่ทราบให้ใส่ 0)"}
+                            "menu": {"type": "STRING", "description": "ชื่อเมนู"},
+                            "quantity": {"type": "INTEGER", "description": "จำนวนแก้ว"},
+                            "price": {"type": "NUMBER", "description": "ราคาต่อแก้ว (อ้างอิงจากข้อมูลร้าน)"}
                         },
                         "required": ["menu", "quantity", "price"]
                     }
