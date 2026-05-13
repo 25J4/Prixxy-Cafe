@@ -1,5 +1,3 @@
-# Prixxy-Cafe
-
 ---
 title: Prixxy Cafe AI Agent
 emoji: ☕
