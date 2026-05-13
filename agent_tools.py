@@ -10,9 +10,8 @@ def log_sale(menu: str, quantity: int, price: float) -> str:
     total = quantity * price
     timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
     
-    # --- ส่วนที่ 1: แจ้งเตือนผ่าน Telegram ---
-    # ใช้ชื่อ TELEGRAM_TOKEN ให้ตรงกับใน Settings ของคุณ
-    token = os.getenv("TELEGRAM_TOKEN")
+    #แจ้งเตือนผ่าน Telegram
+    token = os.getenv("TELEGRAM_BOT_TOKEN")
     chat_id = os.getenv("TELEGRAM_CHAT_ID")
     
     tg_status = "รอกำเนินการ"
@@ -32,7 +31,7 @@ def log_sale(menu: str, quantity: int, price: float) -> str:
         except:
             tg_status = "ส่งไม่สำเร็จ ❌"
 
-    # --- ส่วนที่ 2: บันทึกลง Google Sheets ---
+    #บันทึกลง Google Sheets
     sheet_status = "รอกำเนินการ"
     try:
         # ดึงข้อมูล JSON จาก Secret มาทำเป็นกุญแจเข้า Sheets
