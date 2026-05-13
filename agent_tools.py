@@ -10,29 +10,44 @@ def log_sale(menu: str, quantity: int, price: float) -> str:
     total = quantity * price
     timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
     
-    # --- ส่วนที่ 1: แจ้งเตือนผ่าน Telegram ---
-    # ใช้ชื่อ TELEGRAM_TOKEN ให้ตรงกับใน Settings ของคุณ
-    token = os.getenv("TELEGRAM_BOT_TOKEN")
-    chat_id = os.getenv("TELEGRAM_CHAT_ID")
+    # แจ้งเตือนผ่าน Telegram 
+    token = os.getenv("TELEGRAM_BOT_TOKEN", "").strip()
+    chat_id = os.getenv("TELEGRAM_CHAT_ID", "").strip()
     
     tg_status = "รอกำเนินการ"
     if token and chat_id:
         message = (
-            f"🔔 **ออเดอร์ใหม่!**\n"
+            f"🔔 ออเดอร์ใหม่!\n"
             f"☕ เมนู: {menu}\n"
             f"🔢 จำนวน: {quantity} แก้ว\n"
             f"💰 ยอดรวม: {total} บาท\n"
             f"📅 เวลา: {timestamp}"
         )
         try:
+            import urllib.request
+            import json
+            
             url = f"https://api.telegram.org/bot{token}/sendMessage"
-            payload = {"chat_id": chat_id, "text": message, "parse_mode": "Markdown"}
-            requests.post(url, json=payload)
-            tg_status = "ส่งสำเร็จ ✅"
-        except:
-            tg_status = "ส่งไม่สำเร็จ ❌"
+            payload = json.dumps({"chat_id": chat_id, "text": message}).encode('utf-8')
+            
+            req = urllib.request.Request(
+                url, 
+                data=payload, 
+                headers={'Content-Type': 'application/json'}
+            )
+            
+            # ใช้ urllib พื้นฐานของ Python แทน requests เพื่อเจาะผ่านข้อจำกัด SSL ของเซิร์ฟเวอร์
+            with urllib.request.urlopen(req, timeout=15) as response:
+                if response.status == 200:
+                    tg_status = "ส่งสำเร็จ ✅"
+                else:
+                    tg_status = f"ส่งไม่สำเร็จ ❌ (API Error: {response.status})"
+        except Exception as e:
+            tg_status = f"โค้ดพัง ❌ ({str(e)})"
+    else:
+        tg_status = "หารหัส Token ไม่เจอ ❌"
 
-    # --- ส่วนที่ 2: บันทึกลง Google Sheets ---
+    # บันทึกลง Google Sheets
     sheet_status = "รอกำเนินการ"
     try:
         # ดึงข้อมูล JSON จาก Secret มาทำเป็นกุญแจเข้า Sheets
