@@ -10,47 +10,42 @@ def log_sale(menu: str, quantity: int, price: float) -> str:
     total = quantity * price
     timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
     
-    # แจ้งเตือนผ่าน Telegram 
-    token = os.getenv("TELEGRAM_BOT_TOKEN", "").strip()
-    chat_id = os.getenv("TELEGRAM_CHAT_ID", "").strip()
+    # --- ส่วนที่ 1: แจ้งเตือนผ่าน Telegram (ใช้โค้ดดั้งเดิมที่เวิร์คชัวร์ๆ) ---
+    # ดึงค่าจาก .env (เช็กเผื่อไว้ทั้ง 2 ชื่อ จะได้ไม่พลาด)
+    token = os.getenv("TELEGRAM_BOT_TOKEN") or os.getenv("TELEGRAM_TOKEN")
+    chat_id = os.getenv("TELEGRAM_CHAT_ID")
     
     tg_status = "รอกำเนินการ"
     if token and chat_id:
-        message = (
-            f"🔔 ออเดอร์ใหม่!\n"
-            f"☕ เมนู: {menu}\n"
-            f"🔢 จำนวน: {quantity} แก้ว\n"
-            f"💰 ยอดรวม: {total} บาท\n"
-            f"📅 เวลา: {timestamp}"
-        )
         try:
-            import urllib.request
-            import json
-            
-            url = f"https://api.telegram.org/bot{token}/sendMessage"
-            payload = json.dumps({"chat_id": chat_id, "text": message}).encode('utf-8')
-            
-            req = urllib.request.Request(
-                url, 
-                data=payload, 
-                headers={'Content-Type': 'application/json'}
+            # ข้อความแบบออริจินัลของคุณเลย
+            message = (
+                f"🔔 *มีออเดอร์ใหม่เข้าค้าบผม!*\n"
+                f"--------------------------\n"
+                f"☕ เมนู: *{menu}*\n"
+                f"🔥 จำนวน: {quantity} แก้ว\n"
+                f"💸 รวมเงิน: *{total:,.2f}* บาท\n"
+                f"--------------------------\n"
+                f"✅ บันทึกข้อมูลลง Google Sheets เรียบร้อย"
             )
             
-            # ใช้ urllib พื้นฐานของ Python แทน requests เพื่อเจาะผ่านข้อจำกัด SSL ของเซิร์ฟเวอร์
-            with urllib.request.urlopen(req, timeout=15) as response:
-                if response.status == 200:
-                    tg_status = "ส่งสำเร็จ ✅"
-                else:
-                    tg_status = f"ส่งไม่สำเร็จ ❌ (API Error: {response.status})"
+            url = f"https://api.telegram.org/bot{token.strip()}/sendMessage"
+            payload = {
+                "chat_id": chat_id.strip(),
+                "text": message,
+                "parse_mode": "Markdown"
+            }
+            # ใช้ data=payload ตามโค้ดเก่าของคุณเป๊ะๆ
+            requests.post(url, data=payload)
+            tg_status = "ส่งสำเร็จ ✅"
         except Exception as e:
-            tg_status = f"โค้ดพัง ❌ ({str(e)})"
+            tg_status = f"ส่งไม่สำเร็จ ❌ ({str(e)})"
     else:
         tg_status = "หารหัส Token ไม่เจอ ❌"
 
-    # บันทึกลง Google Sheets
+    # --- ส่วนที่ 2: บันทึกลง Google Sheets ---
     sheet_status = "รอกำเนินการ"
     try:
-        # ดึงข้อมูล JSON จาก Secret มาทำเป็นกุญแจเข้า Sheets
         service_account_info = json.loads(os.getenv("GOOGLE_SERVICE_ACCOUNT_JSON"))
         sheet_id = os.getenv("GOOGLE_SHEETS_ID")
         
@@ -58,7 +53,6 @@ def log_sale(menu: str, quantity: int, price: float) -> str:
         creds = Credentials.from_service_account_info(service_account_info, scopes=scopes)
         client = gspread.authorize(creds)
         
-        # เปิดไฟล์ Sheet และบันทึกข้อมูลต่อท้าย (Append)
         sheet = client.open_by_key(sheet_id).get_worksheet(0)
         sheet.append_row([timestamp, menu, quantity, price, total])
         sheet_status = "บันทึกสำเร็จ ✅"
