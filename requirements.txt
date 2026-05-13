@@ -6,3 +6,5 @@ google-generativeai
 google-genai
 sentence-transformers
 chromadb
+faiss-cpu
+streamlit
