@@ -10,15 +10,13 @@ def log_sale(menu: str, quantity: int, price: float) -> str:
     total = quantity * price
     timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
     
-    # --- ส่วนที่ 1: แจ้งเตือนผ่าน Telegram (ใช้โค้ดดั้งเดิมที่เวิร์คชัวร์ๆ) ---
-    # ดึงค่าจาก .env (เช็กเผื่อไว้ทั้ง 2 ชื่อ จะได้ไม่พลาด)
-    token = os.getenv("TELEGRAM_BOT_TOKEN") or os.getenv("TELEGRAM_TOKEN")
+    # --- ส่วนที่ 1: แจ้งเตือนผ่าน Telegram ---
+    token = os.getenv("TELEGRAM_BOT_TOKEN")
     chat_id = os.getenv("TELEGRAM_CHAT_ID")
     
     tg_status = "รอกำเนินการ"
     if token and chat_id:
         try:
-            # ข้อความแบบออริจินัลของคุณเลย
             message = (
                 f"🔔 *มีออเดอร์ใหม่เข้าค้าบผม!*\n"
                 f"--------------------------\n"
@@ -35,7 +33,6 @@ def log_sale(menu: str, quantity: int, price: float) -> str:
                 "text": message,
                 "parse_mode": "Markdown"
             }
-            # ใช้ data=payload ตามโค้ดเก่าของคุณเป๊ะๆ
             requests.post(url, data=payload)
             tg_status = "ส่งสำเร็จ ✅"
         except Exception as e:
@@ -46,8 +43,15 @@ def log_sale(menu: str, quantity: int, price: float) -> str:
     # --- ส่วนที่ 2: บันทึกลง Google Sheets ---
     sheet_status = "รอกำเนินการ"
     try:
-        service_account_info = json.loads(os.getenv("GOOGLE_SERVICE_ACCOUNT_JSON"))
-        sheet_id = os.getenv("GOOGLE_SHEETS_ID")
+        import streamlit as st # นำเข้า streamlit เพื่อใช้ดึง secrets
+
+        json_data = st.secrets["GOOGLE_SERVICE_ACCOUNT_JSON"]
+        sheet_id = st.secrets["GOOGLE_SHEETS_ID"]
+
+        if not json_data:
+            raise ValueError("หาตัวแปร GOOGLE_SERVICE_ACCOUNT_JSON ไม่เจอ")
+            
+        service_account_info = json.loads(json_data)
         
         scopes = ["https://www.googleapis.com/auth/spreadsheets"]
         creds = Credentials.from_service_account_info(service_account_info, scopes=scopes)
