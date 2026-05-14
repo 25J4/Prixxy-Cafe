@@ -2,6 +2,7 @@ import os
 import json
 import requests
 import gspread
+import base64
 from google.oauth2.service_account import Credentials
 from datetime import datetime
 
@@ -44,10 +45,11 @@ def log_sale(menu: str, quantity: int, price: float) -> str:
     sheet_status = "รอกำเนินการ"
     try:
         import streamlit as st
-        
-        raw_json = st.secrets["GOOGLE_SERVICE_ACCOUNT_JSON"]
+
+        b64_data = st.secrets["GOOGLE_SERVICE_ACCOUNT_JSON_B64"]
         sheet_id = st.secrets["GOOGLE_SHEETS_ID"]
-        service_info = json.loads(raw_json) if type(raw_json) is str else dict(raw_json)
+
+        service_info = json.loads(base64.b64decode(b64_data).decode("utf-8"))
         
         scopes = ["https://www.googleapis.com/auth/spreadsheets"]
         creds = Credentials.from_service_account_info(service_info, scopes=scopes)
