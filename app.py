@@ -41,7 +41,7 @@ if prompt := st.chat_input("ถามข้อมูลหรือสั่ง�
     - หากลูกค้า 'สั่งซื้อเครื่องดื่ม' ให้คุณใช้เครื่องมือ 'log_sale' บันทึกออเดอร์ทันที ห้ามแต่งข้อมูลเอง
     - ตอบกลับอย่างเป็นกันเองและสุภาพ"""
 
-    # --- เริ่มต้นระบบ Auto-Retry ตรงนี้ครับ ---
+    # --- เริ่มต้นระบบ Auto-Retry ---
     max_retries = 3
     retry_delay = 2 
     response = None
@@ -70,7 +70,7 @@ if prompt := st.chat_input("ถามข้อมูลหรือสั่ง�
                     ]}]
                 }
             )
-            break  # ถ้าทำงานสำเร็จ ให้หลุดออกจากลูปนี้เลย
+            break
             
         except Exception as e:
             error_msg = str(e)
@@ -84,7 +84,7 @@ if prompt := st.chat_input("ถามข้อมูลหรือสั่ง�
             
             # ถ้าไม่ใช่ 503 หรือลองจนครบ 3 ครั้งแล้วยังไม่ได้
             st.error("ขออภัยครับ ตอนนี้เซิร์ฟเวอร์ AI ของ Google คิวเต็มชั่วคราว รบกวนพิมพ์สั่งใหม่อีกครั้งนะครับ 🥺")
-            st.stop() # หยุดการทำงานตรงนี้เลย ไม่ให้มันไปรันโค้ดส่วนข้างล่างต่อจนแครช
+            st.stop()
     # --- จบระบบ Auto-Retry ---
 
     # ตรวจสอบการเรียกใช้ Tools (ทำงานเมื่อ response ผ่านออกมาจากลูปได้สำเร็จ)
@@ -94,7 +94,6 @@ if prompt := st.chat_input("ถามข้อมูลหรือสั่ง�
             if part.function_call:
                 fn_name = part.function_call.name
                 args = part.function_call.args
-                # รัน Tool ส่ง Telegram
                 answer = TOOLS[fn_name](**args)
             else:
                 answer = response.text
