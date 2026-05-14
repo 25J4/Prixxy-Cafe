@@ -43,18 +43,14 @@ def log_sale(menu: str, quantity: int, price: float) -> str:
     # --- ส่วนที่ 2: บันทึกลง Google Sheets ---
     sheet_status = "รอกำเนินการ"
     try:
-        import streamlit as st # นำเข้า streamlit เพื่อใช้ดึง secrets
-
-        json_data = st.secrets["GOOGLE_SERVICE_ACCOUNT_JSON"]
+        import streamlit as st
+        
+        raw_json = st.secrets["GOOGLE_SERVICE_ACCOUNT_JSON"]
         sheet_id = st.secrets["GOOGLE_SHEETS_ID"]
-
-        if not json_data:
-            raise ValueError("หาตัวแปร GOOGLE_SERVICE_ACCOUNT_JSON ไม่เจอ")
-            
-        service_account_info = json.loads(json_data)
+        service_info = json.loads(raw_json) if type(raw_json) is str else dict(raw_json)
         
         scopes = ["https://www.googleapis.com/auth/spreadsheets"]
-        creds = Credentials.from_service_account_info(service_account_info, scopes=scopes)
+        creds = Credentials.from_service_account_info(service_info, scopes=scopes)
         client = gspread.authorize(creds)
         
         sheet = client.open_by_key(sheet_id).get_worksheet(0)
