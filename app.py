@@ -12,12 +12,12 @@ MODEL = "gemini-3.1-flash-lite"
 
 @st.cache_resource
 def load_rag():
-    return RAGEngine("knowledge/prixxy_kb.txt")
+    return RAGEngine("knowledge/prixxy_tokyo_kb.txt")
 
 rag = load_rag()
 
-st.title("☕ Prixxy ผู้ช่วย AI ของ Prixxy-Cafe")
-st.caption("สอบถามข้อมูลร้าน หรือสั่งเครื่องดื่มได้เลยครับ")
+st.title("🥞 ผู้ช่วย ของ Prixxy โตเกียว")
+st.caption("สั่งโตเกียวไส้ทะลัก ไส้ผสมสั่งได้ตามใจชอบ หรือสอบถามคิวจัดเลี้ยงได้เลยครับ")
 
 if "messages" not in st.session_state:
     st.session_state.messages = []
@@ -36,10 +36,14 @@ if prompt := st.chat_input("ถามข้อมูลหรือสั่ง�
     context = "\n---\n".join(context_chunks)
 
     # คำสั่งให้ AI เข้าใจบทบาท (System Instruction)
-    instruction = f"""คุณคือ Prixxy AI ประจำร้าน Prixxy-Cafe
+    instruction = f"""คุณคือ สาว AI ประจำร้าน Prixxy โตเกียว
     - ตอบคำถามลูกค้าจากข้อมูลนี้: {context}
-    - หากลูกค้า 'สั่งซื้อเครื่องดื่ม' ให้คุณใช้เครื่องมือ 'log_sale' บันทึกออเดอร์ทันที ห้ามแต่งข้อมูลเอง
-    - ตอบกลับอย่างเป็นกันเองและสุภาพ"""
+    - หากลูกค้าสั่งโตเกียว (ไม่ว่าจะสั่งเป็นเซ็ต หรือสั่งแบบผสมไส้เอง) ให้คำนวณราคาให้ถูกต้อง และใช้เครื่องมือ 'log_sale' บันทึกออเดอร์ทันที ห้ามแต่งข้อมูลเอง
+    - สำคัญมาก: เวลาบันทึกออเดอร์ตรงช่อง menu ให้สรุปรายละเอียดไส้ทั้งหมดที่ลูกค้าสั่งให้ชัดเจน (เช่น 'โตเกียวไข่นก+หมูสับ+ชีส')
+    - ถ้าสั่ง แป้งปกติ + ไส้ ➔ เริ่มที่ 10 + ค่าไส้
+    - ถ้าสั่ง โตเกียวกะเพรา/พิซซ่า ➔ เริ่มที่ 55 (ไม่ต้องบวก 10 บาทค่าแป้งอีก)
+    - ถ้าสั่ง ออปชันพิเศษ ➔ บวกเพิ่มตามขนาด (จัมโบ้ +20)
+    - ตอบกลับอย่างเป็นกันเอง สไตล์แม่ค้าสาวสวยใจดี"""
 
     # --- เริ่มต้นระบบ Auto-Retry ---
     max_retries = 3
@@ -56,13 +60,13 @@ if prompt := st.chat_input("ถามข้อมูลหรือสั่ง�
                     "tools": [{"function_declarations": [
                         {
                             "name": "log_sale",
-                            "description": "ใช้บันทึกออเดอร์และแจ้งเตือนเข้า Telegram เมื่อลูกค้าสั่งเครื่องดื่ม",
+                            "description": "ใช้บันทึกออเดอร์และแจ้งเตือนเข้า Telegram เมื่อลูกค้าสั่งขนมโตเกียว",
                             "parameters": {
                                 "type": "OBJECT",
                                 "properties": {
                                     "menu": {"type": "STRING", "description": "ชื่อเมนู"},
-                                    "quantity": {"type": "INTEGER", "description": "จำนวนแก้ว"},
-                                    "price": {"type": "NUMBER", "description": "ราคาต่อแก้ว (อ้างอิงจากข้อมูลร้าน)"}
+                                    "quantity": {"type": "INTEGER", "description": "จำนวนชิ้น"},
+                                    "price": {"type": "NUMBER", "description": "ราคาต่อชิ้น (อ้างอิงจากข้อมูลร้าน)"}
                                 },
                                 "required": ["menu", "quantity", "price"]
                             }
