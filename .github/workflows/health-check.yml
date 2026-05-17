@@ -1,0 +1,34 @@
+name: Project Health Check
+on:
+  push:
+    branches: [main, "release/demo-day", "feature/*"] # ให้มันตรวจทุกกิ่งที่เราทำงานอยู่
+  schedule:
+    - cron: '0 0 * * 1'   # ทุกจันทร์ ping deploy URL
+
+jobs:
+  static-checks:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: README + deploy URL
+        run: |
+          test -f README.md
+          grep -iE "prixxy-cafe\.me" README.md # 👈 เปลี่ยนเป็นโดเมนสุดเท่ของเรา
+
+      - name: requirements.txt valid
+        run: |
+          test -f requirements.txt
+          python -m pip install --dry-run -r requirements.txt
+
+      - name: PIVOT.md exists
+        run: test -f PIVOT.md
+
+      - name: No .env in history
+        run: |
+          if git log --all --full-history -- ".env" | grep -q .; then
+            echo "❌ .env ใน history"
+            exit 1
+          fi

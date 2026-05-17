@@ -5,11 +5,14 @@ import gspread
 import base64
 from google.oauth2.service_account import Credentials
 from datetime import datetime
+from dotenv import load_dotenv
 
 def log_sale(menu: str, quantity: int, price: float) -> str:
     """บันทึกออเดอร์ลง Google Sheets และแจ้งเตือนผ่าน Telegram"""
     total = quantity * price
     timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+
+    load_dotenv(override=True)
     
     # --- ส่วนที่ 1: แจ้งเตือนผ่าน Telegram ---
     token = os.getenv("TELEGRAM_BOT_TOKEN")
@@ -21,8 +24,8 @@ def log_sale(menu: str, quantity: int, price: float) -> str:
             message = (
                 f"🔔 *มีออเดอร์ใหม่เข้าค้าบผม!*\n"
                 f"--------------------------\n"
-                f"☕ เมนู: *{menu}*\n"
-                f"🔥 จำนวน: {quantity} แก้ว\n"
+                f"🥞 เมนู: *{menu}*\n"
+                f"🔥 จำนวน: {quantity} ชิ้น\n"
                 f"💸 รวมเงิน: *{total:,.2f}* บาท\n"
                 f"--------------------------\n"
                 f"✅ บันทึกข้อมูลลง Google Sheets เรียบร้อย"
@@ -44,24 +47,29 @@ def log_sale(menu: str, quantity: int, price: float) -> str:
     # --- ส่วนที่ 2: บันทึกลง Google Sheets ---
     sheet_status = "รอกำเนินการ"
     try:
-        import streamlit as st
-
-        b64_data = st.secrets["GOOGLE_SERVICE_ACCOUNT_JSON_B64"]
-        sheet_id = st.secrets["GOOGLE_SHEETS_ID"]
-
-        service_info = json.loads(base64.b64decode(b64_data).decode("utf-8"))
+        # ดึงตัวแปร B64 จาก .env 
+        b64_data = os.getenv("GOOGLE_SERVICE_ACCOUNT_JSON_B64")
+        sheet_id = os.getenv("GOOGLE_SHEETS_ID")
         
-        scopes = ["https://www.googleapis.com/auth/spreadsheets"]
-        creds = Credentials.from_service_account_info(service_info, scopes=scopes)
-        client = gspread.authorize(creds)
-        
-        sheet = client.open_by_key(sheet_id).get_worksheet(0)
-        sheet.append_row([timestamp, menu, quantity, price, total])
-        sheet_status = "บันทึกสำเร็จ ✅"
+        if not b64_data or not sheet_id:
+            sheet_status = "หารหัสใน .env ไม่เจอ ❌"
+        else:
+            # ถอดรหัส Base64 กลับเป็น JSON 
+            decoded_str = base64.b64decode(b64_data.strip()).decode("utf-8")
+            service_info = json.loads(decoded_str)
+            
+            scopes = ["https://www.googleapis.com/auth/spreadsheets"]
+            creds = Credentials.from_service_account_info(service_info, scopes=scopes)
+            client = gspread.authorize(creds)
+            
+            sheet = client.open_by_key(sheet_id.strip()).get_worksheet(0)
+            sheet.append_row([timestamp, menu, quantity, price, total])
+            sheet_status = "บันทึกสำเร็จ ✅"
+            
     except Exception as e:
         sheet_status = f"ผิดพลาด: {str(e)} ❌"
 
-    return f"รับออเดอร์ '{menu}' {quantity} แก้ว เรียบร้อยครับ! (Telegram: {tg_status}, Sheets: {sheet_status})"
+    return f"รับออเดอร์ '{menu}' {quantity} ชิ้น เรียบร้อยครับ! (Telegram: {tg_status}, Sheets: {sheet_status})"
 
 TOOLS = {
     "log_sale": log_sale,

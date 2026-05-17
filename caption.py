@@ -1,55 +1,52 @@
 import os
+import streamlit as st
+from google import genai
 from dotenv import load_dotenv
-import google.generativeai as genai
 
-# โหลด Environment Variables จากไฟล์ .env
+# โหลด .env
 load_dotenv()
-GOOGLE_API_KEY = os.getenv('GOOGLE_API_KEY')
+client = genai.Client(api_key=os.getenv("GOOGLE_API_KEY"))
+MODEL = "gemini-3.1-flash-lite"
 
-if not GOOGLE_API_KEY:
-    print("❌ หา GOOGLE_API_KEY ไม่เจอ ตรวจสอบไฟล์ .env ด่วนครับ!")
-    exit()
+st.title("✍️ นักการตลาด AI - Prixxy โตเกียว")
+st.caption("ตัวช่วยคิดแคปชันโซเชียลมีเดีย สำหรับโปรโมทหน้าร้านและรับจัด Snack Box")
 
-# ตั้งค่า API Key ให้กับ Google SDK
-genai.configure(api_key=GOOGLE_API_KEY)
+topic = st.text_input("วันนี้อยากโปรโมทอะไรครับ?", placeholder="เช่น โตเกียวกะเพราชีส, เซ็ตวัยรุ่นย้อนยุค, หรือรับเหมาเตาจัดเลี้ยง")
+tone = st.selectbox("เลือก Mood & Tone", [
+    "สนุกสนาน เป็นกันเอง ชวนหิว", 
+    "ทางการ น่าเชื่อถือ", 
+    "กวนๆ สไตล์พ่อค้าสตรีทฟู้ด"
+])
 
-def generate_captions(menu_name, price):
-    # ใช้โมเดล Gemini 2.5 Flash
-    model = genai.GenerativeModel('gemini-2.5-flash')
-    
-    # อัปเดต Prompt ให้ใส่ชื่อร้าน Prixxy-Cafe ลงไป
-    prompt = (
-        f"Generate 3 Instagram caption variants for 'Prixxy-Cafe' featuring '{menu_name}' priced at {price}. "
-        "The captions should be in three distinct styles: cute, minimal, and gen-z. "
-        "Please provide the output in Thai, output each caption on a new line, and clearly number them. "
-        "Make sure to include the cafe name '#PrixxyCafe' in the hashtags."
-    )
-    
-    try:
-        response = model.generate_content(prompt)
-        text = response.text
+if st.button("✨ เจนแคปชันเลย!"):
+    if topic:
+        # คำสั่ง Prompt สำหรับร้านโตเกียว
+        prompt = f"""
+        คุณคือ Content Creator มืออาชีพของร้าน 'Prixxy โตเกียว'
+        จงเขียนแคปชันโซเชียลมีเดียเพื่อโปรโมท: {topic}
+        Mood & Tone: {tone}
         
-        # จัดการข้อความให้ออกมาเป็น List คลีนๆ
-        captions = [line.strip() for line in text.split('\n') if line.strip()]
-        return captions
+        ข้อมูลจุดขายของร้าน: 
+        - ร้านขนมโตเกียวพรีเมียม แป้งหอมกรอบนุ่ม (ออริจินัล วนิลา, ชาโคล)
+        - จุดเด่นคือ 'เลือกไส้ผสมได้ตามใจชอบ' มีทั้งไส้คาว หวาน และออปชันพรีเมียม
+        - มีบริการรับจัด Snack Box ขั้นต่ำ 50 กล่อง และบริการเหมาเตาไปทอดสดหน้างาน
         
-    except Exception as e:
-        print(f"\n❌ เกิดข้อผิดพลาดในการเรียกใช้ API: {e}")
-        return []
-
-if __name__ == "__main__":
-    print("✨ --- ระบบคิดแคปชั่นอัตโนมัติ Prixxy-Cafe --- ✨")
-    
-    # รับค่า Input จากผู้ใช้ผ่าน Terminal
-    menu_input = input("👉 กรุณาใส่ชื่อเมนู (เช่น มัทฉะลาเต้): ")
-    price_input = input("👉 กรุณาใส่ราคา (เช่น 85 บาท): ")
-    
-    print(f"\n🚀 กำลังให้ AI คิด Caption สำหรับ '{menu_input}' ร้าน Prixxy-Cafe...")
-    captions = generate_captions(menu_input, price_input)
-    
-    if not captions:
-        print("⚠️ ไม่สามารถสร้าง Caption ได้ครับ")
+        ข้อบังคับ:
+        - เขียนให้กระชับ น่าอ่าน ใช้ Emoji ประกอบให้ดูน่ากิน
+        - ใส่ Call to Action ให้ทักแชทสั่งล่วงหน้าได้
+        - ใส่ Hashtag ท้ายข้อความ: #Prixxyโตเกียว #โตเกียวไส้ทะลัก #SnackBox #รับจัดเบรค
+        - ตอบกลับเฉพาะส่วนที่เป็นเนื้อหาแคปชันเท่านั้น ไม่ต้องอารัมภบท
+        """
+        
+        with st.spinner("กำลังปั่นแคปชันหอมๆ..."):
+            try:
+                response = client.models.generate_content(
+                    model=MODEL,
+                    contents=prompt
+                )
+                st.success("เสร็จเรียบร้อย! คัดลอกไปโพสต์ได้เลยครับ 🚀")
+                st.write(response.text)
+            except Exception as e:
+                st.error(f"เกิดข้อผิดพลาด: {str(e)}")
     else:
-        print("\n✨ ผลลัพธ์ Caption สไตล์ Prixxy-Cafe:")
-        for caption in captions:
-            print(caption)
+        st.warning("กรุณาใส่หัวข้อที่อยากโปรโมทก่อนนะครับ!")

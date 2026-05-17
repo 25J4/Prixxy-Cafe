@@ -16,7 +16,6 @@ class RAGEngine:
         """Load (ขั้นตอน 1) และ Chunk (ขั้นตอน 2)"""
         with open(path, encoding="utf-8") as f:
             text = f.read()
-        # ตัดข้อความเป็นชิ้นๆ ตามบรรทัดว่าง
         return [c.strip() for c in text.split("\n\n") if c.strip()]
 
     def _build_index(self):
