@@ -9,7 +9,7 @@ from dotenv import load_dotenv
 
 def log_sale(menu: str, quantity: int, price: float) -> str:
     """บันทึกออเดอร์ลง Google Sheets และแจ้งเตือนผ่าน Telegram"""
-    total = quantity * price
+    total = price
     timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
 
     load_dotenv(override=True)
@@ -24,8 +24,7 @@ def log_sale(menu: str, quantity: int, price: float) -> str:
             message = (
                 f"🔔 *มีออเดอร์ใหม่เข้าค้าบผม!*\n"
                 f"--------------------------\n"
-                f"🥞 เมนู: *{menu}*\n"
-                f"🔥 จำนวน: {quantity} ชิ้น\n"
+                f"🥞 เมนู:\n{menu}\n"
                 f"💸 รวมเงิน: *{total:,.2f}* บาท\n"
                 f"--------------------------\n"
                 f"✅ บันทึกข้อมูลลง Google Sheets เรียบร้อย"
@@ -69,7 +68,8 @@ def log_sale(menu: str, quantity: int, price: float) -> str:
     except Exception as e:
         sheet_status = f"ผิดพลาด: {str(e)} ❌"
 
-    return f"รับออเดอร์ '{menu}' {quantity} ชิ้น เรียบร้อยครับ! (Telegram: {tg_status}, Sheets: {sheet_status})"
+    # ปรับคำตอบกลับให้สั้นลง เพราะถ้าเอาตัวแปร {menu} มาใส่ตรงนี้ ข้อความมันจะยาวและขึ้นบรรทัดใหม่แปลกๆ ครับ
+    return f"รับออเดอร์เรียบร้อยครับ! (Telegram: {tg_status}, Sheets: {sheet_status})"
 
 TOOLS = {
     "log_sale": log_sale,
